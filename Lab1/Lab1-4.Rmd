@@ -1,0 +1,15 @@
+---
+title: "Lab1-4-rMarkdown"
+author: "Xinwei Fan"
+date: "2023-09-27"
+output: html_document
+---
+
+## data_frame
+
+```{r}
+animals<-c("Snake","Ostrich","Cat","Spider")
+num_legs<-c(0,2,4,8)
+animals_df<-data.frame(animals,num_legs)
+animals_df
+```

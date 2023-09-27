@@ -1,0 +1,26 @@
+---
+title: "Lab1-5"
+author: "Xinwei Fan"
+date: "2023-09-27"
+output: html_document
+---
+
+## matrix
+
+```{r }
+xvect <- c(seq(12,2,-2))
+X <- matrix(xvect, 2, 3)
+Y <- matrix(c(seq(1,4)), 2, 2)
+Z <- matrix(c(seq(4,10,2)), 2, 2)
+# t() 转置
+t(X)
+# Y%*%X 矩阵的乘法
+Y%*%X
+# solve(Y) 矩阵的逆 Y−1
+solve(Y)
+# solve(Y) %*% X Y−1X
+solve(Y) %*% X
+# ? Y−1X
+
+```
+
