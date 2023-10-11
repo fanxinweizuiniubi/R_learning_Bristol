@@ -17,9 +17,7 @@ data("Hawks")
 ```{r}
 head(Hawks)
 ```
-
 ## 1.1 (Q1)   
-
 <!-- Include your answers for each question under a second level heading eg ## 1.1 (Q1) -->
 **** insert your solutions here *****
 ```{r}
@@ -31,7 +29,6 @@ tail_mean
 tail_med <- median(HawksTail)
 tail_med
 ```
-
 ## 1.2 (Q1)
 ```{r}
 Hawks %>%
@@ -53,7 +50,6 @@ HawksTail_y <- HawksTail*2+3
 result_2 <- mean(HawksTail_y)
 result_2
 ```
-
 ## 1.3 (Q2)
 ```{r}
 tail_var<-var(HawksTail_y, na.rm=TRUE)
@@ -61,7 +57,6 @@ tail_var
 tail_sd<-sd(HawksTail_y, na.rm=TRUE)
 tail_sd
 ```
-
 ## 1.4
 ```{r}
 hal<-Hawks$Hallux
@@ -98,7 +93,6 @@ for(num_outliers in num_outliers_vect) {
 }
 t_means_vect
 ```
-
 ## 1.4 (Q2)
 ```{r}
 df_means_medians<-data.frame(num_outliers=num_outliers_vect,mean=means_vect, t_mean=t_means_vect,median=medians_vect)
@@ -106,7 +100,6 @@ df_means_medians
 df_means_medians%>% pivot_longer(!num_outliers,names_to="Estimator",values_to="Value")%>% ggplot(aes(x=num_outliers,color=Estimator,linetype=Estimator,y=Value))+ geom_line()+xlab("Numberofoutliers")
 ```
 median? because it's very steady
-
 ## 1.5 (Q1)
 ```{r}
 ggplot(data=Hawks, aes(x=Species, y=Weight))+geom_boxplot()+xlab('Species') + ylab("Weight")
@@ -120,7 +113,6 @@ Hawks %>%
             quantile075=quantile(Weight, probs = 0.75, na.rm=TRUE))
   
 ```
-
 ## 1.5 (Q3)
 ```{r}
 num_outliers <- function(vec) {
@@ -132,11 +124,31 @@ num_outliers <- function(vec) {
 }
 num_outliers(c(0,40,60,185))
 ```
-## 1.5 (Q3)
+## 1.5 (Q4)
 ```{r}
 Hawks %>%
   group_by(Species) %>%
   summarise(num_outliers_weight=num_outliers(Weight))
+```
+## 1.6 (Q1)
+```{r}
+S <- cov(Hawks$Weight, Hawks$Wing, use='complete.obs')
+R <- cor(Hawks$Weight, Hawks$Wing, use='complete.obs')
+S
+R
+```
+## 1.6 (Q2)
+acS
+acR/|a||c|
+```{r}
+S_ <- cov(Hawks$Weight * 2.4 + 7.1, Hawks$Wing * -1 + 3, use='complete.obs')
+R_ <- cor(Hawks$Weight * 2.4 + 7.1, Hawks$Wing * -1 + 3, use='complete.obs')
+S_
+R_
+S_manual <- 2.4 * -1 * S
+R_manual <- 2.4 * -1 * R / abs(2.4) * abs(-1)
+S_manual
+R_manual
 ```
 
 # 2. Random experiments, events and sample spaces, and the set theory
