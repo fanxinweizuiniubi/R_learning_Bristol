@@ -1,0 +1,123 @@
+---
+title: "Assignment 4"
+author: "Xinwei Fan"
+date: "2022-10-16"
+output: html_document # you can change to other output format if you want
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+# 1. Probability theory
+....
+
+# 2. Finite probability spaces
+
+## 2.1 (Q1)
+
+....
+
+## 2.1 (Q2)
+```{r}
+prob_red_spheres <- function(num) {
+  choose(22, num) * 0.3 ^ num * 0.7 ^ (22 - num)
+}
+prob_red_spheres(10)
+```
+## 2.1 (Q3)
+```{r}
+num_reds <- c(seq(1, 22))
+prob <- prob_red_spheres(num_reds)
+prob_by_num_reds <- data.frame(num_reds, prob)
+prob_by_num_reds %>% head(3)
+```
+
+## 2.1 (Q4)
+```{r}
+prob_by_num_reds %>% ggplot(aes(x = num_reds, y = prob)) + geom_line() + xlab("Number of reds") + ylab("Probability")
+```
+
+## 2.1 (Q5)
+```{r}
+sample(10, 22, replace = TRUE)
+```
+
+```{r}
+## case1:Setting the random seed just once
+set.seed(0)
+for (i in 1:5) {
+  print(sample(100, 5, replace = FALSE))
+  # The result may well differ everytime
+}
+```
+```{r}
+## case2:Resetting the random seed everytime
+set.seed(1)
+print(sample(100, 5, replace = FALSE))
+set.seed(1)
+print(sample(100, 5, replace = FALSE))
+set.seed(1)
+print(sample(100, 5, replace = FALSE))
+#The result should not change
+```
+
+```{r}
+num_trials<-1000 # set the number of trials
+set.seed(0) # set the random seed
+sampling_with_replacement_simulation<-data.frame(trial=1:num_trials)%>% mutate(sample_balls=map(.x=trial,~sample(10,22,replace=TRUE)))
+head(sampling_with_replacement_simulation)
+```
+
+```{r}
+sampling_with_replacement_simulation <- sampling_with_replacement_simulation %>%
+  mutate(num_reds=map_dbl(sample_balls, ~sum(.x <= 3)))
+sampling_with_replacement_simulation
+```
+
+## 2.1 (Q6)
+```{r}
+num_reds_in_simulation<-sampling_with_replacement_simulation%>% pull(num_reds)
+
+prob_by_num_reds<-prob_by_num_reds%>% mutate(predicted_prob=map_dbl(.x=num_reds,~sum(num_reds_in_simulation==.x))/num_trials)
+```
+
+## 2.1 (Q7)
+```{r}
+prob_by_num_reds%>% rename(TheoreticalProbability=prob,EstimatedProbability=predicted_prob)%>% pivot_longer(cols=c("EstimatedProbability","TheoreticalProbability"), names_to="Type",values_to="count")%>% ggplot(aes(num_reds,count))+ geom_line(aes(linetype=Type,color=Type))+geom_point(aes(color=Type))+ scale_linetype_manual(values=c("solid","dashed"))+ theme_bw()+xlab("Numberofreds")+ylab("Probabilities")
+```
+
+## 2.2 (Q1)
+
+```{r}
+set.seed(0)
+num_trials <- 1000
+sample_size <- 10
+reds <- rep(1, times = 50)
+blues <- rep(2, times = 30)
+greens <- rep(3, times = 20)
+combined_vector <- c(reds, blues, greens)
+mixed_balls <- sample(combined_vector, length(combined_vector))
+  
+colorful_balls<-data.frame(trial=1:num_trials) %>%  
+  mutate(sample_balls=map(.x=trial,~sample(mixed_balls,sample_size,replace=FALSE)))
+
+colorful_balls <- colorful_balls %>%
+  mutate(num_reds=map_dbl(sample_balls, ~sum(.x == 1))) %>%
+  mutate(num_blues=map_dbl(sample_balls, ~sum(.x == 2))) %>%
+  mutate(num_greens=map_dbl(sample_balls, ~sum(.x == 3)))
+
+zero_of_balls<-pmin(colorful_balls$num_reds, colorful_balls$num_blues, colorful_balls$num_greens)
+
+count_of_zeros <- sum(zero_of_balls == 0)
+prob <- count_of_zeros/num_trials
+prob
+```
+
+
+
