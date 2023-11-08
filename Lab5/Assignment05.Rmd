@@ -1,0 +1,67 @@
+
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+# 1. Conditional probability, Bayes rule and independence
+
+## 1.2 Conditional probability
+1. P(A)/P(B) 1
+2. 0 yes
+3. 1
+4. yes P(A)/P(omega) = 1
+5. 
+
+## 2.2 Distributions
+### Q4
+```{r}
+Gen_X_numbers <- function(n) {
+  random_numbers <- runif(n, min = 0, max = 1)
+  vec <- c()
+  for (i in random_numbers) {
+    if (i >= 0 & i < 0.5) {
+      vec <- c(vec, 0)
+    } else if (i >= 0.5 & i < 0.7) {
+      vec <- c(vec, 3)
+    } else if (i >= 0.7 & i <= 1) {
+      vec <- c(vec, 10)
+    } 
+  }
+  vec
+}
+Gen_X_numbers(4)
+```
+
+```{r}
+Gen_Y_samples <- function(m, n) {
+  index_values <- c(seq(1, m))
+  df <- data.frame(index = index_values)
+  df <- df %>%
+    mutate(Y = map_dbl(index, ~sum(Gen_X_numbers(n))))
+}
+Gen_Y_samples(5,2)
+```
+
+```{r}
+data <- Gen_Y_samples(50000, 3)
+data
+data %>%
+  ggplot(aes(x = Y)) + geom_bar()
+```
+
+```{r}
+data <- Gen_Y_samples(50000, 20)
+data
+data %>%
+  ggplot(aes(x = Y)) + geom_bar()
+```
+
+```{r}
+data <- Gen_Y_samples(50000, 100)
+data
+data %>%
+  ggplot(aes(x = Y)) + geom_bar()
+```

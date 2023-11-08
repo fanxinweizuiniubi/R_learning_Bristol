@@ -1,0 +1,89 @@
+
+```{r}
+library(tidyverse)
+```
+
+# 1.Continuous random variables and limit laws
+## 1.1 Simulating data with the uniform distribution
+## Q2
+```{r}
+set.seed(0) 
+n<-1000 
+sample_X<-data.frame(U=runif(n))%>% 
+  mutate(X=case_when( 
+    (0<=U)&(U<0.25)~3, 
+    (0.25<=U)&(U<0.5)~10, 
+    (0.5<=U)&(U<=1)~0)) %>% 
+  pull(X)
+table_sample_X <- table(sample_X) / 1000
+table_sample_X
+```
+
+## Q3
+```{r}
+sample_X_0310 <- function(alpha, beta, n) {
+  sample_X<-data.frame(U=runif(n))%>% 
+    mutate(X=case_when( 
+      (0<=U)&(U<alpha)~3, 
+      (alpha<=U)&(U<(alpha + beta))~10, 
+      ((alpha + beta)<=U)&(U<=1)~0)) %>% 
+    pull(X)
+}
+sample <- sample_X_0310(0.25, 0.25, 1000)
+table_sample <- table(sample) / 1000
+table_sample
+```
+
+## Q4
+E(x)=2.5
+```{r}
+sample <- sample_X_0310(0.5, 0.1, 10000)
+mean_sample <- mean(sample)
+mean_sample
+```
+
+## Q5
+Var(x)=8.25
+```{r}
+sample_v <- sample_X_0310(0.5, 0.1, 10000)
+var_sample <- var(sample_v)
+var_sample
+```
+
+## Q6
+```{r}
+df <- data.frame(beta=seq(0, 0.9, 0.01))
+df <- df %>%
+  mutate(sample_X=map(.x=beta, ~sample_X_0310(0.1,.x,100))) %>%
+  mutate(samplemean=map_dbl(.x=sample_X, .f=mean)) %>%
+  mutate(Expectation=map_dbl(.x=beta, ~(.x*10 + 0.3)))
+```
+
+## Q7
+```{r}
+df %>% ggplot() + labs(x="beta", y="value") + theme_bw() +
+  geom_point(aes(x=beta, y=samplemean,color="samplemean")) +
+  geom_point(aes(x=beta, y=Expectation,color="Expectation")) +
+  scale_color_manual(name="name",values = c("Expectation"="red","samplemean"="#00CCFF"))
+```
+
+## 1.2 Exponential distribution
+## Q2
+
+```{r}
+my_cdf_exp <- function(x, lambda) {
+  f <- function(x) lambda*exp(-lambda*x)
+  if (x > 0) {
+    result <- integrate(f, lower = 0, upper = x)$value
+  } else {
+    result <- 0
+  }
+  
+  return(result)
+}
+lambda<-1/2
+map_dbl(.x=seq(-1,4),.f=~my_cdf_exp(x=.x,lambda=lambda))
+```
+```{r}
+test_inputs<-seq(-1,10,0.1) my_cdf_output<-map_dbl(.x=test_inputs,.f=~my_cdf_exp(x=.x,lambda=lambda)) inbuilt_cdf_output<-map_dbl(.x=test_inputs,.f=~pexp(q=.x,rate=lambda)) all.equal(my_cdf_output,inbuilt_cdf_output)
+```
