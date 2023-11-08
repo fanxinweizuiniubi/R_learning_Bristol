@@ -85,5 +85,29 @@ lambda<-1/2
 map_dbl(.x=seq(-1,4),.f=~my_cdf_exp(x=.x,lambda=lambda))
 ```
 ```{r}
-test_inputs<-seq(-1,10,0.1) my_cdf_output<-map_dbl(.x=test_inputs,.f=~my_cdf_exp(x=.x,lambda=lambda)) inbuilt_cdf_output<-map_dbl(.x=test_inputs,.f=~pexp(q=.x,rate=lambda)) all.equal(my_cdf_output,inbuilt_cdf_output)
+test_inputs<-seq(-1,10,0.1)  
+my_cdf_output<-map_dbl(.x=test_inputs, .f=~my_cdf_exp(x=.x,lambda=lambda))
+inbuilt_cdf_output<-map_dbl(.x=test_inputs,.f=~pexp(q=.x,rate=lambda))
+all.equal(my_cdf_output,inbuilt_cdf_output)
 ```
+## Q3
+0.02010067
+```{r}
+my_quantile_exp <- function(p, lambda) {
+  f <- -log(1 - p) / lambda
+  return(f)
+}
+my_quantile_exp(0.01, 0.5)
+qexp(0.01, 0.5)
+```
+
+```{r}
+test_inputs<-seq(0.01,0.99,0.01)
+my_output<-map_dbl(.x=test_inputs, .f=~my_quantile_exp(p=.x,lambda=lambda))
+qexp_output<-map_dbl(.x=test_inputs,.f=~qexp(.x,rate=0.5))
+all.equal(my_output,qexp_output)
+```
+
+## Q4
+E(x)=1/λ
+Var(x)=1/λ²
