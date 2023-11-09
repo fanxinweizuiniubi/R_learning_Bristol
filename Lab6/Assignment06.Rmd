@@ -68,6 +68,7 @@ df %>% ggplot() + labs(x="beta", y="value") + theme_bw() +
 ```
 
 ## 1.2 Exponential distribution
+
 ## Q2
 
 ```{r}
@@ -90,6 +91,7 @@ my_cdf_output<-map_dbl(.x=test_inputs, .f=~my_cdf_exp(x=.x,lambda=lambda))
 inbuilt_cdf_output<-map_dbl(.x=test_inputs,.f=~pexp(q=.x,rate=lambda))
 all.equal(my_cdf_output,inbuilt_cdf_output)
 ```
+
 ## Q3
 0.02010067
 ```{r}
@@ -111,3 +113,171 @@ all.equal(my_output,qexp_output)
 ## Q4
 E(x)=1/λ
 Var(x)=1/λ²
+
+## 1.3 The Binomial distribution and the central limit theorem
+
+## Q1
+E(x)=np  
+Var(x)=np(1-p)  
+
+## Q2
+```{r}
+binom_df <- data.frame(x=seq(0, 50, 1))
+binom_df <- binom_df %>% 
+  mutate(pmf=dbinom(x,size=50,prob=0.7))
+head(binom_df, 3)
+```
+
+## Q3
+```{r}
+gaussian_df <- data.frame(x=seq(0, 50, 0.01))
+gaussian_df <- gaussian_df %>%
+  mutate(pdf=dnorm(x,mean=50*0.7,sd=sqrt(50*0.7*(1-0.7))))
+head(gaussian_df, 3)
+```
+
+## Q4
+```{r}
+colors<-c("Gaussianpdf"="red","Binomialpmf"="blue")
+fill<-c("Gaussianpdf"="white","Binomialpmf"="white")
+
+ggplot()+labs(x="x",y="Probability")+theme_bw()+
+  geom_line(data=gaussian_df,aes(x,y=pdf,color="Gaussianpdf"),size=2)+
+  geom_col(data=binom_df,aes(x=x,y=pmf,color="Binomialpmf",fill="Binomialpmf"))+
+  scale_color_manual(name="myLegend",values=colors)+
+  scale_fill_manual(name="myLegend",values=fill)+
+  xlim(c(20,50))
+```
+
+## 1.4 The Gaussian distribution
+
+## Q1
+```{r}
+n1<-rnorm(1000000,1,sqrt(1))
+n2<-rnorm(1000000,1,sqrt(2))
+n3<-rnorm(1000000,1,sqrt(3))
+plot_obj <- ggplot() + labs(x="x", y="Density") + theme_bw() +
+  geom_density(aes(x=n1,color="red",linetype="n1")) + 
+  geom_density(aes(x=n2,color="green",linetype="n2")) +
+  geom_density(aes(x=n3,color="blue",linetype="n3"))+
+  xlim(c(-4,6))
+plot_obj
+```
+
+## Q2
+```{r}
+x_p <- seq(-4,6,0.1)
+df <- data.frame(x = x_p, cdf_values1 = pnorm(x_p, 1,sqrt(1)), cdf_values2 = pnorm(x_p, 1,sqrt(2)), cdf_values3 = pnorm(x_p, 1,sqrt(3)))
+df %>% 
+  ggplot() + theme_bw() +
+  labs(x = "x", y = "Cumulative Probability", title = "Standard Normal Distribution CDF") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  geom_line(aes(x=x,y=cdf_values1,color="red")) + 
+  geom_line(aes(x=x,y=cdf_values2,color="green")) + 
+  geom_line(aes(x=x,y=cdf_values3,color="blue")) 
+  
+```
+
+## Q3
+```{r}
+x_q <- seq(0,1,0.005)
+df <- data.frame(x = x_q, q_values1 = qnorm(x_q, 1,sqrt(1)), q_values2 = qnorm(x_q, 1,sqrt(2)), q_values3 = qnorm(x_q, 1,sqrt(3)))
+df %>% 
+  ggplot() + theme_bw() +
+  labs(x = "x", y = "Quantile", title = "Quantile Function") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_line(aes(x=x,y=q_values1,color="red")) + 
+  geom_line(aes(x=x,y=q_values2,color="green")) + 
+  geom_line(aes(x=x,y=q_values3,color="blue")) 
+```
+
+## Q4
+```{r}
+set.seed(0)
+standardGaussianSample <- rnorm(100, mean = 0, sd = 1)
+```
+
+## Q5
+```{r}
+mean1Var3GaussianSampleA <- standardGaussianSample * sqrt(3) + 1
+```
+
+## Q6
+```{r}
+
+```
+
+## Q7
+```{r}
+mean1Var3GaussianSampleB <- rnorm(100, mean = 1, sd = sqrt(3))
+ggplot() + theme_bw() +
+  labs(x = "x", y = "Density") +
+  geom_density(aes(x=mean1Var3GaussianSampleA),color="red",linetype="solid") + 
+  geom_density(aes(x=mean1Var3GaussianSampleB),color="blue",linetype="dashed") +
+  geom_vline(aes(xintercept=mean(mean1Var3GaussianSampleA),color="green",linetype="solid")) + 
+  geom_vline(aes(xintercept=mean(mean1Var3GaussianSampleB),color="pink",linetype="dashed"))
+```
+
+# 2.Location estimators with Gaussian data
+
+```{r}
+set.seed(0) 
+num_trials_per_sample_size<-1000 
+min_sample_size<-30 
+max_sample_size<-500 
+sample_size_inc<-5 
+mu_0<-1 
+sigma_0<-3 
+
+simulation_df <- crossing(
+  trial = seq(num_trials_per_sample_size),
+  sample_size = seq(min_sample_size, max_sample_size, sample_size_inc)
+) %>%
+  mutate(
+    simulation = pmap(
+      .l = list(trial, sample_size),
+      .f = ~rnorm(.y, mean = mu_0, sd = sigma_0)
+    )
+  ) %>%
+  mutate(sample_md = map_dbl(.x = simulation, .f = median)) %>%
+  group_by(sample_size) %>%
+  summarise(msq_error_md = mean((sample_md - mu_0)^2))
+```
+
+## Q1
+µ0
+
+## Q2
+```{r}
+set.seed(0) 
+num_trials_per_sample_size<-1000 
+min_sample_size<-30 
+max_sample_size<-500 
+sample_size_inc<-5 
+mu_0<-1 
+sigma_0<-3 
+
+simulation_df <- crossing(
+  trial = seq(num_trials_per_sample_size),
+  sample_size = seq(min_sample_size, max_sample_size, sample_size_inc)
+) %>%
+  mutate(
+    simulation = pmap(
+      .l = list(trial, sample_size),
+      .f = ~rnorm(.y, mean = mu_0, sd = sigma_0)
+    ),
+    sample_md = map_dbl(.x = simulation, .f = median),
+    sample_mn = map_dbl(.x = simulation, .f = mean)
+  ) %>%
+  group_by(sample_size) %>%
+  summarise(
+    msq_error_md = mean((sample_md - mu_0)^2),
+    msq_error_mn = mean((sample_mn - mu_0)^2)
+  )
+
+simulation_df %>% 
+  ggplot(aes(x=sample_size)) + theme_bw() +
+  labs(x = "Sample size", y = "Mean square error") + 
+  geom_smooth(aes(y=msq_error_mds),color="blue",linetype="dashed") +
+  geom_smooth(aes(y=msq_error_mn),color="red",linetype="solid") 
+```
