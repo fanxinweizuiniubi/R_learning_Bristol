@@ -1,0 +1,45 @@
+
+```{r}
+library(tidyverse)
+```
+
+# 1.Maximum likelihood estimates
+## 1.1 Maximum likelihood estimates for Redtailed hawks
+
+```{r}
+library(Stat2Data) 
+data("Hawks")
+```
+
+## Q1
+
+```{r}
+RedTailedDf <- Hawks %>%
+  filter(Species=="RT") %>%
+  select(Weight, Tail, Wing)
+head(RedTailedDf, 5)
+```
+
+## Q2
+
+```{r}
+n <- length(RedTailedDf$Tail)
+mu_mle <- mean(RedTailedDf$Tail, na.rm = TRUE)
+sigma_mle <-  sd(RedTailedDf$Tail, na.rm = TRUE) * sqrt((n-1)/n)
+```
+
+## Q3
+
+```{r}
+weights <- seq(mu_mle-3*sigma_mle, mu_mle+3*sigma_mle, 0.001*sigma_mle)
+
+colors <- c("MLE density"="red", "Kernel density"="blue")
+
+estimated_density <- data.frame(Length=weights, Density=dnorm(weights, mean = mu_mle, sd = sigma_mle))
+
+plot_obj <- ggplot() + geom_line(data=estimated_density, aes(x=Length, y=Density, color="MLE density"))
+
+plot_obj + geom_density(data=tibble(RedTailedDf$Tail), aes(x=RedTailedDf$Tail, color="Kernel density")) + labs(y="Tail length(mm)", color="colour") + theme_bw() + scale_color_manual(values=colors)
+```
+
+## 1.2 Unbiased estimation of the population variance

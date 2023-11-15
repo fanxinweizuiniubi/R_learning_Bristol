@@ -278,6 +278,6 @@ simulation_df <- crossing(
 simulation_df %>% 
   ggplot(aes(x=sample_size)) + theme_bw() +
   labs(x = "Sample size", y = "Mean square error") + 
-  geom_smooth(aes(y=msq_error_mds),color="blue",linetype="dashed") +
+  geom_smooth(aes(y=msq_error_md),color="blue",linetype="dashed") +
   geom_smooth(aes(y=msq_error_mn),color="red",linetype="solid") 
 ```
