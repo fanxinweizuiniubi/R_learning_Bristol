@@ -43,3 +43,130 @@ plot_obj + geom_density(data=tibble(RedTailedDf$Tail), aes(x=RedTailedDf$Tail, c
 ```
 
 ## 1.2 Unbiased estimation of the population variance
+
+## Q1 
+
+```{r}
+set.seed(0)
+trials <- 1000
+sample_sizes <- seq(5, 100, 5)
+mu <- 1
+sigma <- 3
+
+biasfunc <- function(x){return (x - sigma**2)}
+
+df <- crossing(trial=seq(trials), sample_size=sample_sizes)
+df <- mutate(df, simulation=pmap(.l=list(trial, sample_size), .f=~rnorm(.y, mean=mu, sd=sigma)))
+sim_by_n_df <- df %>% 
+  mutate(sample_var_vu = map_dbl(.x=simulation, ~var(.x))) %>%
+  mutate(sample_var_mle = map2_dbl(.x=simulation, .y=sample_size, ~(sd(.x)*sqrt((.y-1)/.y))**2)) %>%
+  mutate(bias_vu = map_dbl(.x = sample_var_vu, .f=biasfunc)) %>%
+  mutate(bias_mle = map_dbl(.x = sample_var_mle, .f=biasfunc))
+
+plot_obj_1_2_q1 <- ggplot() + labs(x="sample size", y="variance") + theme_bw() + geom_point(data=sim_by_n_df, aes(x=sample_size, y=bias_vu, color="Vu", linetype="Vu"), size=0.5) + geom_point(data=sim_by_n_df, aes(x=sample_size, y=bias_mle, color="Vmle", linetype="Vmle"),  size=0.5)
+
+plot_obj_1_2_q1
+
+```
+
+## Q2
+
+```{r}
+set.seed(0)
+trials <- 1000
+sample_sizes <- seq(5, 100, 5)
+mu <- 1
+sigma <- 3
+
+msefunc <- function(x){return (mean((x-sigma)**2))}
+biasfunc <- function(x){return (x - sigma)}
+
+df <- crossing(trial=seq(trials), sample_size=sample_sizes)
+df <- mutate(df, simulation=pmap(.l=list(trial, sample_size), .f=~rnorm(.y, mean=mu, sd=sigma)))
+sim_by_n_df <- df %>% 
+  mutate(sample_var_vu = map_dbl(.x=simulation, ~sqrt(var(.x)))) %>%
+  mutate(sample_var_mle = map2_dbl(.x=simulation, .y=sample_size, ~sd(.x)*sqrt((.y-1)/.y))) %>%
+  mutate(bias_vu = map_dbl(.x = sample_var_vu, .f=biasfunc)) %>%
+  mutate(bias_mle = map_dbl(.x = sample_var_mle, .f=biasfunc))
+
+plot_obj_1_2_q2 <- ggplot() + labs(x="sample size", y="bias") + theme_bw() + geom_point(data=sim_by_n_df, aes(x=sample_size, y=bias_vu, color="Vu", linetype="Vu"), size=0.5) + geom_point(data=sim_by_n_df, aes(x=sample_size, y=bias_mle, color="Vmle", linetype="Vmle"),  size=0.5)
+
+plot_obj_1_2_q2
+
+```
+
+## 1.3 Maximum likelihood estimation with the Poissond istribution
+
+## Q3
+
+```{r}
+set.seed(0)
+trials <- 1000
+sample_sizes <- seq(5, 100, 5)
+mu_0 <- 0.5
+
+msefunc <- function(x){return (mean((x-mu_0)**2))}
+
+df <- crossing(trial=seq(trials), sample_size=sample_sizes)
+df <- mutate(df, simulation=pmap(.l=list(trial, sample_size), .f=~rpois(.y, mu_0)))
+sim_by_n_df <- df %>% 
+  mutate(sample_mean = map_dbl(.x=simulation, .f=mean)) %>%
+  mutate(sample_mse = map_dbl(.x = sample_mean, .f=msefunc)) 
+
+plot_obj_1_3_q3 <- ggplot() + labs(x="sample size", y="mse") + theme_bw() + geom_point(data=sim_by_n_df, aes(x=sample_size, y=sample_mse, color="sample_mse"), size=0.5)  
+
+plot_obj_1_3_q3
+```
+
+## Q4
+
+```{r}
+data <- read.csv("VonBortkiewicz.csv")
+fatalities <- data$fatalities
+fatalities
+lambda_MLE <- mean(fatalities)
+lambda_MLE
+prob_zero_fatalities <- dpois(0, lambda_MLE)
+prob_zero_fatalities
+```
+
+## 1.4 Maximum likelihood estimation for the exponential distribution
+
+## Q3
+```{r}
+data <- read.csv("CustomerPurchase.csv")
+data <- data %>%
+  mutate(time_diffs = lead(Time) - Time)
+mu_mle <- length(data$time_diffs)/sum(data$time_diffs, na.rm = TRUE)
+mu_mle
+```
+
+## Q4
+```{r}
+probability_exceed_one_minute <- 1 - pexp(60, rate = mu_mle)
+probability_exceed_one_minute
+```
+
+# 2.Confidence intervals
+## 2.1 Student’s t-confidence intervals
+
+## Q2
+```{r}
+red_tailed_hawks_weights <- RedTailedDf$Weight[!is.na(RedTailedDf$Weight)]
+ci <- t.test(red_tailed_hawks_weights, conf.level = 0.99)
+ci
+```
+
+## Q3
+```{r}
+ggplot(data = RedTailedDf, aes(x = Weight)) + 
+  geom_density() + 
+  theme_bw() + 
+  xlab("Weight of Red-Tailed Hawks")
+
+ggplot(data = RedTailedDf, aes(sample = Weight)) + 
+  theme_bw() +stat_qq()+ stat_qq_line(color="blue")
+```
+
+## 2.2 Investigating coverage for Student’s t intervals
+
