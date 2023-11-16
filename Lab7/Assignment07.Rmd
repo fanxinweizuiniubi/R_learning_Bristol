@@ -170,3 +170,86 @@ ggplot(data = RedTailedDf, aes(sample = Weight)) +
 
 ## 2.2 Investigating coverage for Student’s t intervals
 
+```{r}
+student_t_confidence_interval<-function(sample,confidence_level){ 
+  sample<-sample[!is.na(sample)]
+  n<-length(sample)
+  mu_est<-mean(sample)
+  sig_est<-sd(sample)
+  alpha=1-confidence_level
+  
+  t<-qt(1-alpha/2,df=n-1)
+  l=mu_est-(t/sqrt(n))*sig_est
+  u=mu_est+(t/sqrt(n))*sig_est
+  return(c(l,u))
+}
+```
+
+## Q1
+```{r}
+num_trials<-100000
+sample_size<-30
+mu_0<-1
+sigma_0<-3
+alpha<-0.01
+set.seed(0)
+
+single_alpha_coverage_simulation_df<-data.frame(trial=seq(num_trials))%>%
+  mutate(sample=map(.x=trial,.f=~rnorm(n=sample_size,mean=mu_0,sd=sigma_0)))%>%
+  mutate(ci_interval=map(.x=sample,.f=~student_t_confidence_interval(.x,1-alpha)))%>%
+  mutate(cover=map_lgl(.x=ci_interval,.f=~((min(.x)<=mu_0)&(max(.x)>=mu_0))))%>%
+  mutate(ci_length=map_dbl(.x=ci_interval,.f=~(max(.x)-min(.x))))
+
+single_alpha_coverage_simulation_df%>%
+  pull(cover)%>%
+  mean()
+```
+
+# 3.One sample hypothesis testing
+## 3.1 One sample t-test on penguins data
+
+## Q1
+
+```{r}
+library(palmerpenguins)
+data("penguins")
+```
+
+```{r}
+bill_adelie <- penguins %>%
+  filter(species=="Adelie" & !is.na(bill_length_mm)) %>%
+  select(bill_length_mm)
+
+df_bill_adelie <- data.frame(bill_adelie)
+
+ggplot(data = df_bill_adelie, aes(x = bill_length_mm)) + 
+  geom_density() + 
+  theme_bw() + 
+  xlab("bill_length_mm")
+
+ggplot(data = df_bill_adelie, aes(sample = bill_length_mm)) + 
+  theme_bw() +stat_qq()+ stat_qq_line(color="blue")
+
+ci <- t.test(bill_adelie, mu=40, conf.level = 0.99)
+ci
+```
+
+## 3.2 Implementing a one-samplet-test
+
+## Q1
+
+```{r}
+bill_adelie_values <- penguins %>%
+  filter(species=="Adelie" & !is.na(bill_length_mm)) %>%
+  pull(bill_length_mm)
+
+compute_p_value <- function(sample, mu){
+  sample_size <- length(sample)
+  sample_mean <- mean(sample)
+  sample_sd <- sd(sample)
+  test_statistic <- (sample_mean - mu) / (sample_sd/sqrt(sample_size))
+  p <- 2*(1-pt(abs(test_statistic),df=sample_size-1))
+  return (p)
+}
+compute_p_value(bill_adelie_values, 40)
+```
